@@ -1,0 +1,9 @@
+# Core runtime utilities (torch/torchvision/torchaudio/faiss は除外)
+open_clip_torch
+scenedetect[opencv]
+opencv-python-headless
+scikit-image
+lpips
+hydra-core
+mlflow
+pip-tools

@@ -1,0 +1,3 @@
+experiment_name: smoke
+seed: 42
+output_dir: ${oc.env:RUN_OUTPUT_DIR, ${project_root:}/artifacts/runs/${run.experiment_name}}

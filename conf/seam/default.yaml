@@ -1,0 +1,4 @@
+weights:
+  ssim: 0.5
+  lpips: 0.5
+threshold: 0.2

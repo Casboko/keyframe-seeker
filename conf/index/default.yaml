@@ -1,0 +1,3 @@
+type: IndexFlatIP
+dimension: 512
+use_gpu: true

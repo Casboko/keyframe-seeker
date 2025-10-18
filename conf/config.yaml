@@ -1,0 +1,12 @@
+defaults:
+  - data: default
+  - sampling: fps4
+  - embed: openclip_vitb32
+  - route: beam
+  - run: default
+  - runpod: default
+
+project_root: ${hydra:runtime.cwd}
+
+run:
+  experiment: smoke
