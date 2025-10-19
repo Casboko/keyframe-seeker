@@ -3,7 +3,6 @@ FROM nvidia/cuda:12.8.1-runtime-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_NO_CACHE_DIR=1 \
-    PIP_ONLY_BINARY=:all: \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
@@ -22,15 +21,16 @@ ENV PATH="/root/.local/bin:${PATH}"
 
 RUN python3 -m venv /opt/venv
 
+WORKDIR /workspace
+
 RUN printf "setuptools<70\n" > build-constraints.txt
+
+ENV UV_BUILD_CONSTRAINT=/workspace/build-constraints.txt
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=tmpfs,target=/tmp \
     uv pip install --python=/opt/venv/bin/python \
-        --build-constraint build-constraints.txt \
         wheel
-
-WORKDIR /workspace
 
 COPY requirements.in requirements-base.in constraints-base.txt ./
 
@@ -40,7 +40,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=tmpfs,target=/tmp \
     uv pip install --python=/opt/venv/bin/python \
         --constraint constraints-base.txt \
-        --build-constraint build-constraints.txt \
         hydra-core==1.3.2 \
         omegaconf==2.3.0 \
         antlr4-python3-runtime==4.9.3
@@ -49,12 +48,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=tmpfs,target=/tmp \
     uv pip install --python=/opt/venv/bin/python \
         --constraint constraints-base.txt \
-        --build-constraint build-constraints.txt \
         --extra-index-url ${PYTORCH_INDEX_URL_CU128} \
         -r requirements.in \
     && uv pip install --python=/opt/venv/bin/python \
         --constraint constraints-base.txt \
-        --build-constraint build-constraints.txt \
         faiss-gpu-cu12
 
 ENV PATH="/opt/venv/bin:${PATH}"
