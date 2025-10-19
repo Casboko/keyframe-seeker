@@ -30,16 +30,28 @@ jobs:
     env:
       IMAGE_TAG: ${{ github.event.inputs.tag || 'cu128' }}
     steps:
-      - name: Maximize build space
+      - name: Maximize build space (leave /mnt for Docker)
         uses: easimon/maximize-build-space@v10
         with:
-          root-reserve-mb: 8192
-          temp-reserve-mb: 256
+          root-reserve-mb: 12288
+          temp-reserve-mb: 40960
           swap-size-mb: 1024
           remove-dotnet: true
           remove-android: true
           remove-haskell: true
           remove-codeql: true
+          remove-docker-images: true
+
+      - name: Move Docker data-root to /mnt/docker
+        run: |
+          set -eux
+          sudo systemctl stop docker
+          sudo mkdir -p /mnt/docker
+          echo '{"data-root":"/mnt/docker"}' | sudo tee /etc/docker/daemon.json
+          sudo rsync -aP /var/lib/docker/ /mnt/docker/ || true
+          sudo rm -rf /var/lib/docker || true
+          sudo systemctl start docker
+          docker info -f 'Docker Root Dir: {{ .DockerRootDir }}'
 
       - uses: actions/checkout@v4
 
@@ -67,8 +79,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Buildx
+      - name: Setup Buildx (aggressive GC)
         uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-config-inline: |
+            [worker.oci]
+              gc = true
+              max-parallelism = 4
+              reservedSpace = "5GB"
+              maxUsedSpace  = "55GB"
+              minFreeSpace  = "5GB"
 
       - name: Build & Push (linux/amd64)
         uses: docker/build-push-action@v5

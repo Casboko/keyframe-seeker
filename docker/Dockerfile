@@ -7,13 +7,14 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
     python3-pip \
     python3-venv \
     git \
     curl \
-    ffmpeg \
- && rm -rf /var/lib/apt/lists/*
+    ffmpeg
 
 WORKDIR /workspace
 
