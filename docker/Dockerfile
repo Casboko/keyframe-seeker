@@ -16,7 +16,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     curl \
     ffmpeg
 
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh -s -- --yes
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ENV PATH="/root/.local/bin:${PATH}"
 
@@ -26,9 +26,8 @@ RUN printf "setuptools<70\n" > build-constraints.txt
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=tmpfs,target=/tmp \
-    uv pip install --python /opt/venv/bin/python \
-        --upgrade pip \
-        "setuptools<70" \
+    uv pip install --python=/opt/venv/bin/python \
+        --build-constraint build-constraints.txt \
         wheel
 
 WORKDIR /workspace
@@ -39,7 +38,7 @@ ARG PYTORCH_INDEX_URL_CU128=https://download.pytorch.org/whl/cu128
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=tmpfs,target=/tmp \
-    uv pip install --python /opt/venv/bin/python \
+    uv pip install --python=/opt/venv/bin/python \
         --constraint constraints-base.txt \
         --build-constraint build-constraints.txt \
         hydra-core==1.3.2 \
@@ -48,12 +47,12 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=tmpfs,target=/tmp \
-    uv pip install --python /opt/venv/bin/python \
+    uv pip install --python=/opt/venv/bin/python \
         --constraint constraints-base.txt \
         --build-constraint build-constraints.txt \
         --extra-index-url ${PYTORCH_INDEX_URL_CU128} \
         -r requirements.in \
-    && uv pip install --python /opt/venv/bin/python \
+    && uv pip install --python=/opt/venv/bin/python \
         --constraint constraints-base.txt \
         --build-constraint build-constraints.txt \
         faiss-gpu-cu12
