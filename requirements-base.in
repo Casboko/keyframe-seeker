@@ -1,8 +1,11 @@
 # Core runtime utilities (torch/torchvision/torchaudio/faiss は除外)
 open_clip_torch
-scenedetect[opencv]
-opencv-python-headless
+numpy>=1.26,<2
+scenedetect
+opencv-python-headless==4.8.1.78
 scikit-image
+scipy==1.11.4
+tifffile==2024.8.30
 lpips
 hydra-core
 mlflow

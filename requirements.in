@@ -6,11 +6,13 @@ torchaudio==2.7.1 ; platform_system == "Linux"
 # Embedding & search
 open_clip_torch
 faiss-gpu-cu12
+numpy==1.26.4
 
 # Video preprocessing & scoring
 scenedetect[opencv]
-opencv-python-headless
+opencv-python-headless==4.8.1.78
 scikit-image
+tifffile==2024.8.30
 lpips
 
 # Orchestration & logging

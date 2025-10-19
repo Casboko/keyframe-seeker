@@ -24,7 +24,7 @@ RUN python3 -m venv /opt/venv \
  && /opt/venv/bin/pip install --upgrade pip setuptools wheel
 
 RUN /bin/bash -lc "set -euo pipefail; \
-    /opt/venv/bin/pip install -c constraints-base.txt -r requirements.in --index-url ${PYTORCH_INDEX_URL_CU128}; \
+    /opt/venv/bin/pip install -c constraints-base.txt -r requirements.in --extra-index-url ${PYTORCH_INDEX_URL_CU128}; \
     /opt/venv/bin/pip install faiss-gpu-cu12 || /opt/venv/bin/pip install 'faiss-gpu-cu12[fix_cuda]'"
 
 ENV PATH="/opt/venv/bin:${PATH}"

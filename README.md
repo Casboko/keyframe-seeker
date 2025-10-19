@@ -6,7 +6,7 @@
 
 - CUDA / PyTorch / FAISS / ffmpeg の基準値を `docs/DECISIONS.md` に記録済み。
 - Hydra 設定の defaults 骨格と MLflow スモーク用スクリプト（`scripts/00_smoke.sh`）を追加。
-- PySceneDetect と OpenCLIP + FAISS の最小スモーク（`scripts/01_ingest.sh`, `scripts/02_sample_embed.py`）を用意。
+- PySceneDetect と OpenCLIP + FAISS の最小スモーク（`scripts/01_ingest.sh`, `scripts/02_sample_embed.py`）を用意。依存解決の都合で `numpy==1.26.4` / `scipy==1.11.4` / `tifffile==2024.8.30` / `contourpy==1.2.1` / `opencv-python-headless==4.8.1.78` を採用。
 - Dockerfile は `nvidia/cuda:12.8.1-devel-ubuntu22.04` をベースに依存をインストールする構成に更新。
 - `requirements-base.in` / `constraints-base.txt` による二段ロックと `make deps-base` / `make install` フローを整備。
 
@@ -22,7 +22,7 @@
 
 ## 次のステップ
 
-1. 依存を追加・更新した場合は `make deps-base` で `constraints-base.txt` を再生成し、`make install` で GPU 版 FAISS を導入する。
+1. 依存を追加・更新した場合は `make deps-base` で `constraints-base.txt` を再生成し、`make install` で `--extra-index-url` を使って PyTorch/cu128 を追加取得しつつ GPU 版 FAISS を導入する（※ `numpy==1.26.4` / `scipy==1.11.4` / `tifffile==2024.8.30` / `contourpy==1.2.1` / `opencv-python-headless==4.8.1.78` を維持し、FAISS の `numpy<2` 制約と両立させる）。
 2. `faiss-gpu-cu12` の安定入手可否を定期確認し、必要に応じて `[fix_cuda]` フォールバックや代替手段を README に追記する。
 3. Runpod Pod / Serverless での環境変数・永続化設定を整理し、実際の `runpod/pod_start.sh` 実行ログを「Runpod 運用メモ」に反映する。
 
