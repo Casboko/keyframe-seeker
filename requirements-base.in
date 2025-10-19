@@ -7,6 +7,7 @@ scikit-image
 scipy==1.11.4
 tifffile==2024.8.30
 lpips
-hydra-core
-mlflow
+hydra-core==1.3.2
+omegaconf==2.3.0
+mlflow-skinny
 pip-tools

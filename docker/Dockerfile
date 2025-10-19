@@ -27,6 +27,14 @@ RUN python3 -m venv /opt/venv \
 RUN --mount=type=cache,target=/root/.cache/pip \
     --mount=type=tmpfs,target=/tmp \
     /bin/bash -lc "set -euo pipefail; \
+    /opt/venv/bin/pip install -c constraints-base.txt \
+        hydra-core==1.3.2 \
+        omegaconf==2.3.0 \
+        antlr4-python3-runtime==4.9.3"
+
+RUN --mount=type=cache,target=/root/.cache/pip \
+    --mount=type=tmpfs,target=/tmp \
+    /bin/bash -lc "set -euo pipefail; \
     /opt/venv/bin/pip install -c constraints-base.txt -r requirements.in --extra-index-url ${PYTORCH_INDEX_URL_CU128}; \
     /opt/venv/bin/pip install faiss-gpu-cu12"
 

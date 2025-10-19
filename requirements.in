@@ -16,8 +16,9 @@ tifffile==2024.8.30
 lpips
 
 # Orchestration & logging
-hydra-core
-mlflow
+hydra-core==1.3.2
+omegaconf==2.3.0
+mlflow-skinny
 
 # Dev tooling
 pip-tools
