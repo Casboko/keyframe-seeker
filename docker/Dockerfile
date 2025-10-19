@@ -16,28 +16,47 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     curl \
     ffmpeg
 
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh -s -- --yes
+
+ENV PATH="/root/.local/bin:${PATH}"
+
+RUN python3 -m venv /opt/venv
+
+RUN printf "setuptools<70\n" > build-constraints.txt
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=tmpfs,target=/tmp \
+    uv pip install --python /opt/venv/bin/python \
+        --upgrade pip \
+        "setuptools<70" \
+        wheel
+
 WORKDIR /workspace
 
 COPY requirements.in requirements-base.in constraints-base.txt ./
 
 ARG PYTORCH_INDEX_URL_CU128=https://download.pytorch.org/whl/cu128
 
-RUN python3 -m venv /opt/venv \
- && /opt/venv/bin/pip install --upgrade pip setuptools wheel
-
-RUN --mount=type=cache,target=/root/.cache/pip \
+RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=tmpfs,target=/tmp \
-    /bin/bash -lc "set -euo pipefail; \
-    /opt/venv/bin/pip install -c constraints-base.txt \
+    uv pip install --python /opt/venv/bin/python \
+        --constraint constraints-base.txt \
+        --build-constraint build-constraints.txt \
         hydra-core==1.3.2 \
         omegaconf==2.3.0 \
-        antlr4-python3-runtime==4.9.3"
+        antlr4-python3-runtime==4.9.3
 
-RUN --mount=type=cache,target=/root/.cache/pip \
+RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=tmpfs,target=/tmp \
-    /bin/bash -lc "set -euo pipefail; \
-    /opt/venv/bin/pip install -c constraints-base.txt -r requirements.in --extra-index-url ${PYTORCH_INDEX_URL_CU128}; \
-    /opt/venv/bin/pip install faiss-gpu-cu12"
+    uv pip install --python /opt/venv/bin/python \
+        --constraint constraints-base.txt \
+        --build-constraint build-constraints.txt \
+        --extra-index-url ${PYTORCH_INDEX_URL_CU128} \
+        -r requirements.in \
+    && uv pip install --python /opt/venv/bin/python \
+        --constraint constraints-base.txt \
+        --build-constraint build-constraints.txt \
+        faiss-gpu-cu12
 
 ENV PATH="/opt/venv/bin:${PATH}"
 
