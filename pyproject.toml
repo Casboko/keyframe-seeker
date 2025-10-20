@@ -1,15 +1,16 @@
-[tool.uv]
+[tool.uv.pip]
 index-strategy = "first-index"
 
 [[tool.uv.index]]
-name = "pytorch-cu128"
+name = "pytorch"
 url = "https://download.pytorch.org/whl/cu128"
 
 [[tool.uv.index]]
+name = "pypi"
 url = "https://pypi.org/simple"
 default = true
 
 [tool.uv.sources]
-torch = { index = "pytorch-cu128" }
-torchvision = { index = "pytorch-cu128" }
-torchaudio = { index = "pytorch-cu128" }
+torch = { index = "pytorch" }
+torchvision = { index = "pytorch" }
+torchaudio = { index = "pytorch" }

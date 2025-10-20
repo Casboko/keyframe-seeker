@@ -23,10 +23,6 @@ RUN python3 -m venv /opt/venv
 
 WORKDIR /workspace
 
-RUN printf "setuptools<70\n" > build-constraints.txt
-
-ENV UV_BUILD_CONSTRAINT=/workspace/build-constraints.txt
-
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=tmpfs,target=/tmp \
     uv pip install --python=/opt/venv/bin/python \
