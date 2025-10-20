@@ -1,14 +1,14 @@
 .PHONY: deps-base install smoke
 
-PYTORCH_INDEX_URL_CU128 ?= https://download.pytorch.org/whl/cu128
+PYTORCH_INDEX_URL_CU126 ?= https://download.pytorch.org/whl/cu126
 
 deps-base:
 	pip-compile --strip-extras requirements-base.in -o constraints-base.txt
 
 install:
-	@bash -lc "set -euo pipefail; \
-		pip install -c constraints-base.txt -r requirements.in --extra-index-url $(PYTORCH_INDEX_URL_CU128); \
-		pip install faiss-gpu-cu12 || pip install 'faiss-gpu-cu12[fix_cuda]'"
+    @bash -lc "set -euo pipefail; \
+        pip install -c constraints-base.txt -r requirements.in --index-url $(PYTORCH_INDEX_URL_CU126); \
+        pip install --no-deps faiss-gpu-cu12==1.12.0"
 
 smoke:
 	bash scripts/00_smoke.sh

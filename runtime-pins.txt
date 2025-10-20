@@ -1,7 +1,7 @@
 torch==2.7.1
 torchvision==0.22.1
 torchaudio==2.7.1
-numpy==1.26.4
+numpy<2
 scipy==1.11.4
 tifffile==2024.8.30
 contourpy==1.2.1
