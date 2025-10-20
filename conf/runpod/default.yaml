@@ -1,10 +1,10 @@
 runtime:
   cuda: "12.8"
-  base_image: "nvidia/cuda:12.8.1-devel-ubuntu22.04"
+  base_image: "nvidia/cuda:12.8.1-runtime-ubuntu22.04"
 pytorch:
   series: "2.7.x"
-  compute_platform: "cu128"
-  index_url: "https://download.pytorch.org/whl/cu128"
+  compute_platform: "cu126"
+  index_url: "https://download.pytorch.org/whl/cu126"
 faiss:
   package: "faiss-gpu-cu12"
 ffmpeg:

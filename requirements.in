@@ -1,4 +1,4 @@
-# Core runtime（PyTorch GPU版は公式の cu128 インデックス経由で取得）
+# Core runtime（PyTorch GPU版は公式の cu126 インデックス経由で取得）
 torch==2.7.1 ; platform_system == "Linux"
 torchvision==0.22.1 ; platform_system == "Linux"
 torchaudio==2.7.1 ; platform_system == "Linux"

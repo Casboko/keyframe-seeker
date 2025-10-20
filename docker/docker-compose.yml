@@ -8,5 +8,5 @@ services:
     volumes:
       - ..:/workspace
     environment:
-      PYTORCH_INDEX_URL_CU128: https://download.pytorch.org/whl/cu128
+      PYTORCH_INDEX_URL: https://download.pytorch.org/whl/cu126
     runtime: nvidia
