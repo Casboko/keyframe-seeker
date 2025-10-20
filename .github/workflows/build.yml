@@ -6,7 +6,7 @@ on:
       tag:
         description: 'Image tag'
         required: true
-        default: 'cu128'
+        default: 'cu126'
   push:
     branches:
       - main
@@ -28,7 +28,7 @@ jobs:
       contents: read
       packages: write
     env:
-      IMAGE_TAG: ${{ github.event.inputs.tag || 'cu128' }}
+      IMAGE_TAG: ${{ github.event.inputs.tag || 'cu126' }}
     steps:
       - name: Maximize build space (leave /mnt for Docker)
         uses: easimon/maximize-build-space@v10
@@ -99,6 +99,6 @@ jobs:
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
           build-args: |
-            PYTORCH_INDEX_URL_CU128=https://download.pytorch.org/whl/cu128
+            PYTORCH_INDEX_URL=https://download.pytorch.org/whl/cu126
           cache-from: type=gha
           cache-to: type=gha,mode=max

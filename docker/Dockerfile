@@ -44,8 +44,8 @@ RUN --mount=type=cache,target=/root/.cache/uv \
         --constraint constraints-base.txt \
         -r requirements.in \
     && uv pip install --python=/opt/venv/bin/python \
-        --constraint constraints-base.txt \
-        faiss-gpu-cu12
+        --no-deps \
+        faiss-gpu-cu12==1.12.0
 
 ENV PATH="/opt/venv/bin:${PATH}"
 
