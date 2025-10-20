@@ -32,9 +32,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --python=/opt/venv/bin/python \
         wheel
 
-COPY requirements.in requirements-base.in constraints-base.txt ./
-
-ARG PYTORCH_INDEX_URL_CU128=https://download.pytorch.org/whl/cu128
+COPY requirements.in requirements-base.in constraints-base.txt pyproject.toml ./
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=tmpfs,target=/tmp \
@@ -48,7 +46,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=tmpfs,target=/tmp \
     uv pip install --python=/opt/venv/bin/python \
         --constraint constraints-base.txt \
-        --extra-index-url ${PYTORCH_INDEX_URL_CU128} \
         -r requirements.in \
     && uv pip install --python=/opt/venv/bin/python \
         --constraint constraints-base.txt \
