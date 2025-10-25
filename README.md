@@ -10,6 +10,13 @@
 - Dockerfile は `nvidia/cuda:12.8.1-runtime-ubuntu22.04` をベースに依存をインストールする構成に更新。
 - `requirements-base.in` / `constraints-base.txt` による二段ロックと `make deps-base` / `make install` フローを整備。
 
+## PR 駆動運用メモ
+
+- タスク切り出しからレビューまでの 6 ステップテンプレートは `docs/PROCESS/` を参照。
+- PR 本文テンプレートは `.github/pull_request_template.md`（軽微修正は `.github/PULL_REQUEST_TEMPLATE/quick-fix.md`）。
+- コミット規約は `docs/PROCESS/COMMIT_CONVENTION.md`、レビュー観点は `docs/PROCESS/AGENTS.md`、DoD は `docs/PROCESS/DEFINITION_OF_DONE.md`。
+- 変更履歴は `CHANGELOG.md` の Keep a Changelog 形式で Unreleased セクションから更新する。
+
 ## サンプルデータ
 
 - `data/raw/big_buck_bunny_360p30.mp4` を同梱。出典: Big Buck Bunny (Blender Foundation) CC-BY 3.0, https://peach.blender.org/download/

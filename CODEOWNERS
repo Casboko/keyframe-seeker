@@ -1,0 +1,5 @@
+# CODEOWNERS は Ready for review 時に自動レビュー依頼を行います。
+# 実際の GitHub ユーザー名に置き換えて運用してください。
+# 例:
+src/keyframe_seeker/**   @Casboko
+docker/**                @Casboko
