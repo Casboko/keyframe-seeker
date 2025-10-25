@@ -35,8 +35,6 @@ pip install --upgrade \
   nbformat \
   nbclient
 
-python3 -m ipykernel install --user --name keyframe --display-name "Python 3 (keyframe)"
-
 JUPYTER_PORT=${JUPYTER_PORT:-8888}
 echo "[INFO] starting jupyter lab on port ${JUPYTER_PORT}"
 jupyter lab \
