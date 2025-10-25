@@ -7,8 +7,8 @@ deps-base:
 
 install:
 	@bash -lc "set -euo pipefail; \
-		pip install -c constraints-base.txt -r requirements.in --index-url $(PYTORCH_INDEX_URL); \
-		pip install --no-deps faiss-gpu-cu12==1.12.0"
+		PIP_BREAK_SYSTEM_PACKAGES=1 pip install -c constraints-base.txt -r requirements.in --index-url $(PYTORCH_INDEX_URL); \
+		PIP_BREAK_SYSTEM_PACKAGES=1 pip install --no-deps faiss-gpu-cu12==1.12.0"
 
 smoke:
 	bash scripts/00_smoke.sh

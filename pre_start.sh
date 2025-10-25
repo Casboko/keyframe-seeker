@@ -92,6 +92,12 @@ retry() {
 export PIP_CACHE_DIR=${PIP_CACHE_DIR:-/vol/.cache/pip}
 export UV_CACHE_DIR=${UV_CACHE_DIR:-/vol/.cache/uv}
 mkdir -p "${PIP_CACHE_DIR}" "${UV_CACHE_DIR}"
+export PIP_BREAK_SYSTEM_PACKAGES=1
+export PIP_NO_INPUT=1
+
+DATA_ROOT=${RUN_DATA_DIR:-/vol/data}
+ARTIFACT_ROOT=${RUN_ARTIFACTS_DIR:-/vol/artifacts}
+mkdir -p "${DATA_ROOT}/raw" "${DATA_ROOT}/interim" "${DATA_ROOT}/processed" "${ARTIFACT_ROOT}" "${RUNPOD_LOG_DIR:-/vol/logs/pod_start}"
 
 echo "[INFO] running make install"
 retry 3 10 make install

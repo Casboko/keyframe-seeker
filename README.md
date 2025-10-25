@@ -41,6 +41,11 @@
   /bin/bash -lc '
   set -Eeuo pipefail
 
+  if ! command -v git >/dev/null 2>&1; then
+    DEBIAN_FRONTEND=noninteractive apt-get update
+    DEBIAN_FRONTEND=noninteractive apt-get install -y git ca-certificates
+  fi
+
   REPO_DIR=/workspace/keyframe-seeker
   if [[ -d "${REPO_DIR}/.git" ]]; then
     git -C "${REPO_DIR}" fetch --prune
@@ -52,35 +57,11 @@
   cd "${REPO_DIR}"
   git submodule update --init --recursive
 
-  mkdir -p /vol/{data/raw,data/interim,data/processed,artifacts/artifact_exports,artifacts/runs,logs,.cache/pip,.cache/uv}
-  RUN_TS=$(date +%Y%m%d_%H%M%S)
-  cat > /vol/.env <<EOF
-  export DATA_ROOT=/vol/data
-  export ARTIFACTS_ROOT=/vol/artifacts
-  export RUN_TS=${RUN_TS}
-  export HYDRA_OVERRIDES="data.root=/vol/data artifacts.root=/vol/artifacts hydra.run.dir=/vol/artifacts/runs/${RUN_TS}"
-  EOF
-  grep -q "/vol/.env" ~/.bashrc || echo "test -f /vol/.env && source /vol/.env" >> ~/.bashrc
-  source /vol/.env || true
-
-  if [[ -x "${REPO_DIR}/pre_start.sh" ]]; then
-    RUNPOD_REPO_DIR="${REPO_DIR}" "${REPO_DIR}/pre_start.sh"
-  fi
-  if [[ -x "${REPO_DIR}/post_start.sh" ]]; then
-    RUNPOD_REPO_DIR="${REPO_DIR}" "${REPO_DIR}/post_start.sh" || true
-  fi
-
-  if ! command -v jupyter >/dev/null 2>&1; then
-    python3 -m pip install --upgrade pip
-    pip install jupyterlab
-  fi
-  jupyter lab --no-browser --ip=0.0.0.0 --port=${JUPYTER_PORT:-8888} --allow-root > /vol/logs/jupyter.log 2>&1 &
-
-  exec tail -f /dev/null
+  bash scripts/runpod/bootstrap.sh
   '
   ```
   ポート 8888 を公開すれば `https://<pod-id>-8888.proxy.runpod.net` から Jupyter にアクセスできる。
-- Pod 起動時の自動初期化は `pre_start.sh` / `post_start.sh` が担当。ログは `/vol/logs/pod_start/`、pip/uv キャッシュは `/vol/.cache/{pip,uv}` に保存される。
+- Pod 起動時の自動初期化は `scripts/runpod/bootstrap.sh` → `pre_start.sh` → `post_start.sh` の順で行われる。ログは `/vol/logs/pod_start/`、pip/uv キャッシュは `/vol/.cache/{pip,uv}` に保存される。
 - `post_start.sh` はサンプル動画を `/vol/data/raw/` へコピーし、`make smoke` を実行して Hydra/LFS の疎通確認と ingest のスモークを行う。
 - 成果物のダウンロードには、リポジトリ付属の `scripts/archive_interim.sh` を利用して `/vol/artifacts` にアーカイブを生成し、ローカルから `ssh -p <port> ... tar -C /vol/artifacts -czf - interim_*.tar.gz` → `tar.exe -C <local-dir> -xzf -` の手順で取得するのが簡単。
 - Pod 上での確認結果（サンプル）:
