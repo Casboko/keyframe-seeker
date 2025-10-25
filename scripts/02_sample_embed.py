@@ -18,6 +18,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 from contextlib import nullcontext
 from dataclasses import dataclass
 from pathlib import Path
@@ -41,7 +42,7 @@ import numpy as np
 import torch
 from hydra import compose, initialize_config_dir
 from hydra.core.global_hydra import GlobalHydra
-from omegaconf import DictConfig, OmegaConf
+from omegaconf import DictConfig, OmegaConf, errors as oc_errors
 from PIL import Image
 from torch.utils.data import DataLoader, Dataset
 
@@ -188,16 +189,23 @@ def resolve_output_paths(cfg: OmegaConf, output_root_arg: Optional[Path]) -> Tup
     if output_root_arg is not None:
         root = output_root_arg
     else:
-        export_cfg = getattr(cfg, "export", None)
-        configured_path: Optional[Path] = None
-        if isinstance(export_cfg, DictConfig) and export_cfg.get("output_path"):
-            configured_path = Path(str(export_cfg.output_path))
-        if configured_path:
-            root = configured_path.parent
-        else:
-            project_root = Path(str(getattr(cfg, "project_root", Path(__file__).resolve().parent.parent)))
-            root = project_root / "artifacts"
+        artifacts_root: Optional[Path] = None
+        try:
+            artifacts_root = Path(str(cfg.data.artifacts.root))
+        except (AttributeError, oc_errors.OmegaConfBaseException, ValueError):
+            artifacts_root = None
 
+        if artifacts_root is None or str(artifacts_root).strip() == "":
+            env_root = os.environ.get("RUN_ARTIFACTS_DIR")
+            if env_root:
+                artifacts_root = Path(env_root)
+
+        if artifacts_root is None:
+            artifacts_root = Path(__file__).resolve().parent.parent / "artifacts"
+
+        root = artifacts_root
+
+    root = root.expanduser()
     embeddings_dir = root / "embeddings"
     faiss_dir = root / "faiss"
     embeddings_dir.mkdir(parents=True, exist_ok=True)
