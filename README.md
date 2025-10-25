@@ -51,3 +51,16 @@
   ==== PySceneDetect ====
   PySceneDetect 0.6.7
   ```
+
+## Tooling check (container)
+
+```bash
+# Pull from GHCR (image name synced with build workflow)
+docker pull ghcr.io/casboko/keyframe-seeker/keyframe-seeker:cu126
+
+# Run a one-shot check inside the container
+docker run --rm -it ghcr.io/casboko/keyframe-seeker/keyframe-seeker:cu126 bash -lc \
+  'ffmpeg -version | head -n1; mkvmerge -V | head -n1; which ffprobe || true'
+```
+
+> Note: build 時の PyTorch index は `pyproject.toml` の uv index で cu126 に固定済み。`--build-arg` 指定は不要です。

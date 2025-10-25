@@ -13,7 +13,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     python3-venv \
     git \
     curl \
-    ffmpeg
+    ffmpeg \
+    mkvtoolnix
 
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
