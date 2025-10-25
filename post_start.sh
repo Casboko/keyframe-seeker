@@ -15,11 +15,42 @@ cd "${REPO_DIR}"
 
 SAMPLE_SRC="${REPO_DIR}/data/raw/big_buck_bunny_360p30.mp4"
 SAMPLE_DST="${RUN_DATA_DIR:-/vol/data}/raw/big_buck_bunny_360p30.mp4"
-if [[ -f "${SAMPLE_SRC}" && ! -f "${SAMPLE_DST}" ]]; then
-  mkdir -p "$(dirname "${SAMPLE_DST}")"
-  cp -n "${SAMPLE_SRC}" "${SAMPLE_DST}"
-  echo "[INFO] copied sample video to ${SAMPLE_DST}"
-fi
+SAMPLE_URL="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+
+ensure_sample_video() {
+  local src="$1"
+  local dst="$2"
+  local url="$3"
+
+  mkdir -p "$(dirname "${dst}")"
+  if [[ -f "${dst}" ]]; then
+    echo "[INFO] sample video already present -> ${dst}"
+    return 0
+  fi
+
+  if [[ -f "${src}" ]]; then
+    cp -n "${src}" "${dst}"
+    echo "[INFO] copied sample video to ${dst}"
+    return 0
+  fi
+
+  if command -v curl >/dev/null 2>&1; then
+    echo "[INFO] downloading sample video from ${url}"
+    if curl -L -o "${dst}" "${url}"; then
+      echo "[INFO] downloaded sample video -> ${dst}"
+      return 0
+    fi
+    echo "[WARN] failed to download sample video from ${url}" >&2
+    rm -f "${dst}"
+  else
+    echo "[WARN] curl not available; cannot download sample video" >&2
+  fi
+
+  return 1
+}
+
+ensure_sample_video "${SAMPLE_SRC}" "${SAMPLE_DST}" "${SAMPLE_URL}" || \
+  echo "[WARN] sample video is unavailable; smoke tests may fail."
 
 echo "[INFO] running make smoke"
 if make smoke; then
