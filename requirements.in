@@ -5,8 +5,8 @@ torchaudio==2.7.1 ; platform_system == "Linux"
 
 # Embedding & search
 open_clip_torch
-faiss-gpu-cu12==1.12.0
 numpy<2
+# FAISS は Makefile 側で --no-deps 指定の個別インストール運用
 
 # Video preprocessing & scoring
 scenedetect[opencv]

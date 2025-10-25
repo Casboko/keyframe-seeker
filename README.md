@@ -35,8 +35,11 @@
 
 ## Runpod 運用メモ
 
-- Runpod Pods/Serverless の環境変数・永続化ガイド: https://docs.runpod.io/pods/templates/environment-variables
-- Pod 起動時は `runpod/pod_start.sh` で `nvidia-smi` / PyTorch / FAISS / PySceneDetect を検証すること。
+- ネットワークボリュームは `/vol` にマウントする前提。テンプレートで以下の ENV を指定すると Hydra 設定と揃います。  
+  `RUN_DATA_DIR=/vol/data` / `RUN_ARTIFACTS_DIR=/vol/artifacts` / `RUN_MLFLOW_DIR=/vol/artifacts/mlruns` / `RUNPOD_REPO_DIR=/workspace`。必要に応じて `RUNPOD_LOG_DIR=/vol/logs` も上書きしてください。
+- Pod 起動時の自動初期化は `pre_start.sh` / `post_start.sh` が担当します。Runpod 公式イメージの `/start.sh` から自動的に呼ばれるため、テンプレートに両ファイルを含めるだけで `make install`（リトライ付き）→`make smoke` が実行されます。ログは `/vol/logs/pod_start/` に保存されます。
+- キャッシュは永続ボリューム側に配置されます（`PIP_CACHE_DIR=/vol/.cache/pip` / `UV_CACHE_DIR=/vol/.cache/uv`）。Pod 再生成時も pip/uv が速く復帰します。
+- Pod 起動後は必要に応じて `runpod/pod_start.sh` を手動で呼び、`nvidia-smi` / PyTorch / FAISS / PySceneDetect の実行結果を確認してください。
 - Pod 上での確認結果（サンプル）:
   ```
   ==== NVIDIA SMI ====
