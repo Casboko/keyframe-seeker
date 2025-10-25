@@ -47,6 +47,10 @@ jupyter lab \
   --ServerApp.root_dir="${REPO_DIR}" \
   --ServerApp.token='' \
   --ServerApp.password='' \
+  --ServerApp.port_retries=0 \
+  --ServerApp.allow_remote_access=True \
+  --ServerApp.trust_xheaders=True \
+  --ServerApp.allow_origin_pat='^https://[a-z0-9-]+-[0-9]+\.proxy\.runpod\.net$' \
   --ServerApp.terminals_enabled=True \
   --ServerApp.terminado_settings='{"shell_command":["/bin/bash"]}' \
   > /vol/logs/jupyter.log 2>&1 &

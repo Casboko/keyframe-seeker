@@ -61,7 +61,7 @@
   '
   ```
   ポート 8888 を公開すれば `https://<pod-id>-8888.proxy.runpod.net` から Jupyter にアクセスできる。
-- Pod 起動時の自動初期化は `scripts/runpod/bootstrap.sh` → `pre_start.sh` → `post_start.sh` の順で行われる。`bootstrap.sh` が JupyterLab / jupyter-server-terminals / terminado / ipykernel などを最新化し、Python カーネルを `Python 3 (keyframe)` 名で登録する。ログは `/vol/logs/pod_start/`、pip/uv キャッシュは `/vol/.cache/{pip,uv}` に保存される。
+- Pod 起動時の自動初期化は `scripts/runpod/bootstrap.sh` → `pre_start.sh` → `post_start.sh` の順で行われる。`bootstrap.sh` が JupyterLab / jupyter-server-terminals / terminado / ipykernel などを最新化し、Python カーネルを `Python 3 (keyframe)` 名で登録すると同時に `allow_origin_pat` / `allow_remote_access` / `trust_xheaders` / `port_retries=0` をセットして Runpod プロキシ越しの CORS/XSRF を回避する。ログは `/vol/logs/pod_start/`、pip/uv キャッシュは `/vol/.cache/{pip,uv}` に保存される。
 - `post_start.sh` はサンプル動画を `/vol/data/raw/` へコピーし、`make smoke` を実行して Hydra/LFS の疎通確認と ingest のスモークを行う。
 - 成果物のダウンロードには、リポジトリ付属の `scripts/archive_interim.sh` を利用して `/vol/artifacts` にアーカイブを生成し、ローカルから `ssh -p <port> ... tar -C /vol/artifacts -czf - interim_*.tar.gz` → `tar.exe -C <local-dir> -xzf -` の手順で取得するのが簡単。
 - Pod 上での確認結果（サンプル）:
