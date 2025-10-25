@@ -74,7 +74,7 @@
     python3 -m pip install --upgrade pip
     pip install jupyterlab
   fi
-  jupyter lab --no-browser --ip=0.0.0.0 --port=${JUPYTER_PORT:-8888} > /vol/logs/jupyter.log 2>&1 &
+  jupyter lab --no-browser --ip=0.0.0.0 --port=${JUPYTER_PORT:-8888} --allow-root > /vol/logs/jupyter.log 2>&1 &
 
   exec tail -f /dev/null
   '
