@@ -5,6 +5,7 @@ defaults:
   - route: beam
   - run: default
   - runpod: default
+  - _self_
 
 project_root: ${hydra:runtime.cwd}
 
