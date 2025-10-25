@@ -173,7 +173,12 @@ def detect_scenes(video_path: Path, threshold: float) -> Tuple[List[Tuple[float,
     except AttributeError:
         duration_sec = None
     finally:
-        video.release()
+        release = getattr(video, "release", None)
+        close = getattr(video, "close", None)
+        if callable(release):
+            release()
+        elif callable(close):
+            close()
 
     scenes_sec: List[Tuple[float, float]] = []
     for start_tc, end_tc in scene_timecodes:
