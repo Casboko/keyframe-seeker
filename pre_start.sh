@@ -13,6 +13,26 @@ if [[ ! -d "${REPO_DIR}" ]]; then
 fi
 cd "${REPO_DIR}"
 
+ensure_apt_package() {
+  local pkg="$1"
+  if ! dpkg -s "${pkg}" >/dev/null 2>&1; then
+    NEED_APT_UPDATE=1
+    PKG_LIST+=("${pkg}")
+  fi
+}
+
+NEED_APT_UPDATE=0
+PKG_LIST=()
+ensure_apt_package make
+ensure_apt_package git
+ensure_apt_package python3-pip
+ensure_apt_package python3-venv
+if (( NEED_APT_UPDATE == 1 )); then
+  echo "[INFO] installing missing apt packages: ${PKG_LIST[*]}"
+  apt-get update
+  DEBIAN_FRONTEND=noninteractive apt-get install -y "${PKG_LIST[@]}"
+fi
+
 retry() {
   local max_attempts=${1:-3}
   local delay_seconds=${2:-10}
