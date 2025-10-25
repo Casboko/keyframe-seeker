@@ -52,6 +52,16 @@ ensure_sample_video() {
 ensure_sample_video "${SAMPLE_SRC}" "${SAMPLE_DST}" "${SAMPLE_URL}" || \
   echo "[WARN] sample video is unavailable; smoke tests may fail."
 
+if [[ -f "${SAMPLE_DST}" && ! -e "${SAMPLE_SRC}" ]]; then
+  mkdir -p "$(dirname "${SAMPLE_SRC}")"
+  if ln -s "${SAMPLE_DST}" "${SAMPLE_SRC}" 2>/dev/null; then
+    echo "[INFO] symlinked sample video into repo -> ${SAMPLE_SRC}"
+  else
+    cp -n "${SAMPLE_DST}" "${SAMPLE_SRC}"
+    echo "[INFO] copied sample video into repo -> ${SAMPLE_SRC}"
+  fi
+fi
+
 echo "[INFO] running make smoke"
 if make smoke; then
   echo "[INFO] post_start completed"
