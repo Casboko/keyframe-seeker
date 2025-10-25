@@ -26,7 +26,16 @@ if [[ -x "${REPO_DIR}/post_start.sh" ]]; then
 fi
 
 python3 -m pip install --upgrade pip
-pip install --upgrade jupyterlab
+pip install --upgrade \
+  jupyterlab \
+  jupyter-server-terminals \
+  terminado \
+  ipykernel \
+  notebook-shim \
+  nbformat \
+  nbclient
+
+python3 -m ipykernel install --user --name keyframe --display-name "Python 3 (keyframe)"
 
 JUPYTER_PORT=${JUPYTER_PORT:-8888}
 echo "[INFO] starting jupyter lab on port ${JUPYTER_PORT}"
@@ -35,6 +44,7 @@ jupyter lab \
   --ip=0.0.0.0 \
   --port="${JUPYTER_PORT}" \
   --allow-root \
+  --ServerApp.root_dir="${REPO_DIR}" \
   --ServerApp.token='' \
   --ServerApp.password='' \
   --ServerApp.terminals_enabled=True \
