@@ -35,11 +35,54 @@
 
 ## Runpod 運用メモ
 
-- ネットワークボリュームは `/vol` にマウントする前提。テンプレートで以下の ENV を指定すると Hydra 設定と揃います。  
-  `RUN_DATA_DIR=/vol/data` / `RUN_ARTIFACTS_DIR=/vol/artifacts` / `RUN_MLFLOW_DIR=/vol/artifacts/mlruns` / `RUNPOD_REPO_DIR=/workspace`。必要に応じて `RUNPOD_LOG_DIR=/vol/logs` も上書きしてください。
-- Pod 起動時の自動初期化は `pre_start.sh` / `post_start.sh` が担当します。Runpod 公式イメージの `/start.sh` から自動的に呼ばれるため、テンプレートに両ファイルを含めるだけで `make install`（リトライ付き）→`make smoke` が実行されます。ログは `/vol/logs/pod_start/` に保存されます。
-- キャッシュは永続ボリューム側に配置されます（`PIP_CACHE_DIR=/vol/.cache/pip` / `UV_CACHE_DIR=/vol/.cache/uv`）。Pod 再生成時も pip/uv が速く復帰します。
-- Pod 起動後は必要に応じて `runpod/pod_start.sh` を手動で呼び、`nvidia-smi` / PyTorch / FAISS / PySceneDetect の実行結果を確認してください。
+- ネットワークボリュームは `/vol` にマウントする前提。テンプレートの Environment Variables には最低限 `RUN_DATA_DIR=/vol/data`、`RUN_ARTIFACTS_DIR=/vol/artifacts`、`RUN_OUTPUT_DIR=/vol/artifacts/runs`、`RUNPOD_LOG_DIR=/vol/logs`、`TZ=Asia/Tokyo` を追加する。
+- Start Command（GPU Pod 用）の例:
+  ```bash
+  /bin/bash -lc '
+  set -Eeuo pipefail
+
+  REPO_DIR=/workspace/keyframe-seeker
+  if [[ -d "${REPO_DIR}/.git" ]]; then
+    git -C "${REPO_DIR}" fetch --prune
+    git -C "${REPO_DIR}" reset --hard origin/main
+  else
+    rm -rf "${REPO_DIR}"
+    git clone https://github.com/casboko/keyframe-seeker.git "${REPO_DIR}"
+  fi
+  cd "${REPO_DIR}"
+  git submodule update --init --recursive
+
+  mkdir -p /vol/{data/raw,data/interim,data/processed,artifacts/artifact_exports,artifacts/runs,logs,.cache/pip,.cache/uv}
+  RUN_TS=$(date +%Y%m%d_%H%M%S)
+  cat > /vol/.env <<EOF
+  export DATA_ROOT=/vol/data
+  export ARTIFACTS_ROOT=/vol/artifacts
+  export RUN_TS=${RUN_TS}
+  export HYDRA_OVERRIDES="data.root=/vol/data artifacts.root=/vol/artifacts hydra.run.dir=/vol/artifacts/runs/${RUN_TS}"
+  EOF
+  grep -q "/vol/.env" ~/.bashrc || echo "test -f /vol/.env && source /vol/.env" >> ~/.bashrc
+  source /vol/.env || true
+
+  if [[ -x "${REPO_DIR}/pre_start.sh" ]]; then
+    RUNPOD_REPO_DIR="${REPO_DIR}" "${REPO_DIR}/pre_start.sh"
+  fi
+  if [[ -x "${REPO_DIR}/post_start.sh" ]]; then
+    RUNPOD_REPO_DIR="${REPO_DIR}" "${REPO_DIR}/post_start.sh" || true
+  fi
+
+  if ! command -v jupyter >/dev/null 2>&1; then
+    python3 -m pip install --upgrade pip
+    pip install jupyterlab
+  fi
+  jupyter lab --no-browser --ip=0.0.0.0 --port=${JUPYTER_PORT:-8888} > /vol/logs/jupyter.log 2>&1 &
+
+  exec tail -f /dev/null
+  '
+  ```
+  ポート 8888 を公開すれば `https://<pod-id>-8888.proxy.runpod.net` から Jupyter にアクセスできる。
+- Pod 起動時の自動初期化は `pre_start.sh` / `post_start.sh` が担当。ログは `/vol/logs/pod_start/`、pip/uv キャッシュは `/vol/.cache/{pip,uv}` に保存される。
+- `post_start.sh` はサンプル動画を `/vol/data/raw/` へコピーし、`make smoke` を実行して Hydra/LFS の疎通確認と ingest のスモークを行う。
+- 成果物のダウンロードには、リポジトリ付属の `scripts/archive_interim.sh` を利用して `/vol/artifacts` にアーカイブを生成し、ローカルから `ssh -p <port> ... tar -C /vol/artifacts -czf - interim_*.tar.gz` → `tar.exe -C <local-dir> -xzf -` の手順で取得するのが簡単。
 - Pod 上での確認結果（サンプル）:
   ```
   ==== NVIDIA SMI ====

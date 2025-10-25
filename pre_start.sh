@@ -6,7 +6,7 @@ mkdir -p "${LOG_DIR}"
 LOG_FILE="${LOG_DIR}/$(date +%Y%m%dT%H%M%S)_pre.log"
 exec > >(tee -a "${LOG_FILE}") 2>&1
 
-REPO_DIR=${RUNPOD_REPO_DIR:-/workspace}
+REPO_DIR=${RUNPOD_REPO_DIR:-/workspace/keyframe-seeker}
 if [[ ! -d "${REPO_DIR}" ]]; then
   echo "[ERROR] REPO_DIR=${REPO_DIR} が存在しません" >&2
   exit 1
