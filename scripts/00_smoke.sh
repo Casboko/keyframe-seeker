@@ -15,6 +15,18 @@ PY
 
 python3 src/utils/check_config.py
 
+if [[ -f "data/raw/big_buck_bunny_360p30.mp4" ]]; then
+    echo "== ingest sampler smoke =="
+    python3 scripts/01_ingest.py \
+        --input data/raw/big_buck_bunny_360p30.mp4 \
+        --fps 4 \
+        --max-frames 12 \
+        --overwrite \
+        --no-contact-sheet
+else
+    echo "ingest sampler smoke skipped (data/raw/big_buck_bunny_360p30.mp4 not found)"
+fi
+
 echo "== video tooling check (non-fatal) =="
 if command -v ffmpeg >/dev/null 2>&1; then
     ffmpeg -version | head -n1
