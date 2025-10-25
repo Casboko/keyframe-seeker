@@ -13,6 +13,42 @@ if [[ ! -d "${REPO_DIR}" ]]; then
 fi
 cd "${REPO_DIR}"
 
+if [[ ! -f conf/data/default.yaml ]]; then
+  echo "[INFO] conf/data/default.yaml not found; creating default mapping"
+  mkdir -p conf/data
+  cat > conf/data/default.yaml <<'EOF'
+root: ${oc.env:RUN_DATA_DIR, /vol/data}
+paths:
+  raw: ${data.root}/raw
+  interim: ${data.root}/interim
+  processed: ${data.root}/processed
+
+artifacts:
+  root: ${oc.env:RUN_ARTIFACTS_DIR, /vol/artifacts}
+  mlruns: ${oc.env:RUN_MLFLOW_DIR, ${data.artifacts.root}/mlruns}
+EOF
+fi
+
+python3 - <<'PY'
+from pathlib import Path
+
+config_path = Path("conf/config.yaml")
+if config_path.exists():
+    lines = config_path.read_text().splitlines()
+    needle = "  - _self_"
+    if needle.strip() not in {line.strip() for line in lines}:
+        updated = []
+        inserted = False
+        for line in lines:
+            updated.append(line)
+            if line.strip() == "- runpod: default" and not inserted:
+                updated.append(needle)
+                inserted = True
+        if not inserted:
+            updated.append(needle)
+        config_path.write_text("\n".join(updated) + "\n")
+PY
+
 ensure_apt_package() {
   local pkg="$1"
   if ! dpkg -s "${pkg}" >/dev/null 2>&1; then
