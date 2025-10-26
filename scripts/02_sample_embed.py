@@ -144,6 +144,29 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="詳細ログを出力します。",
     )
+    parser.add_argument(
+        "--no-validate",
+        action="store_true",
+        help="埋め込みとインデックスを書き出した後の検証処理をスキップします。",
+    )
+    parser.add_argument(
+        "--validate-norm-tol",
+        type=float,
+        default=5e-3,
+        help="L2 正規化後のノルム許容誤差（既定: 5e-3）。",
+    )
+    parser.add_argument(
+        "--validate-self-score",
+        type=float,
+        default=0.95,
+        help="自己検索時の最小スコア閾値（既定: 0.95）。",
+    )
+    parser.add_argument(
+        "--validate-topk",
+        type=int,
+        default=5,
+        help="検証時に検索する Top-K の件数（既定: 5）。",
+    )
     return parser.parse_args()
 
 
@@ -427,6 +450,69 @@ def write_manifest(manifest_path: Path, manifest: Iterable[EmbedRecord]) -> None
     LOG.info("manifest -> %s", manifest_path)
 
 
+def validate_outputs(
+    embeddings_path: Path,
+    faiss_path: Path,
+    expected_count: int,
+    expected_dim: int,
+    norm_tolerance: float,
+    min_self_score: float,
+    top_k: int,
+) -> None:
+    """Persisted成果物を再読み込みして基本的な整合性チェックを行う。"""
+    LOG.info(
+        "validating outputs (expected_count=%d, expected_dim=%d, norm_tol=%.2e, min_self_score=%.3f, top_k=%d)",
+        expected_count,
+        expected_dim,
+        norm_tolerance,
+        min_self_score,
+        top_k,
+    )
+
+    if not embeddings_path.exists():
+        raise FileNotFoundError(f"embeddings file not found: {embeddings_path}")
+    if not faiss_path.exists():
+        raise FileNotFoundError(f"FAISS index not found: {faiss_path}")
+
+    embeddings = np.load(embeddings_path)
+    if embeddings.shape != (expected_count, expected_dim):
+        raise AssertionError(
+            f"unexpected embedding shape: {embeddings.shape} (expected {(expected_count, expected_dim)})"
+        )
+    if not np.isfinite(embeddings).all():
+        raise AssertionError("embeddings contain non-finite values (NaN or Inf).")
+
+    norms = np.linalg.norm(embeddings, axis=1)
+    deviation = float(np.max(np.abs(norms - 1.0)))
+    if deviation > norm_tolerance:
+        raise AssertionError(
+            f"L2 norm deviation too large (max |norm-1| = {deviation:.4e} > tolerance {norm_tolerance:.4e})"
+        )
+
+    index = faiss.read_index(str(faiss_path))
+    if index.ntotal != expected_count:
+        raise AssertionError(f"index size mismatch: {index.ntotal} (expected {expected_count})")
+    if index.d != expected_dim:
+        raise AssertionError(f"index dimension mismatch: {index.d} (expected {expected_dim})")
+
+    query_top_k = max(1, min(top_k, expected_count))
+    query = embeddings[:1].astype("float32", copy=False)
+    scores, ids = index.search(query, query_top_k)
+    if ids.shape[0] == 0 or ids[0, 0] != 0:
+        raise AssertionError("self-search did not return frame 0 as top-1 neighbour.")
+    if scores[0, 0] < min_self_score:
+        raise AssertionError(
+            f"self-search score too low: {scores[0, 0]:.4f} (expected >= {min_self_score:.4f})"
+        )
+
+    LOG.info(
+        "validation passed: norms within %.2e, self-score %.4f, index entries=%d",
+        deviation,
+        scores[0, 0],
+        index.ntotal,
+    )
+
+
 def main() -> int:
     args = parse_args()
     configure_logging(args.verbose)
@@ -498,6 +584,17 @@ def main() -> int:
 
     LOG.info("writing FAISS index -> %s", faiss_path)
     faiss.write_index(index, str(faiss_path))
+
+    if not args.no_validate:
+        validate_outputs(
+            embeddings_path=embeddings_path,
+            faiss_path=faiss_path,
+            expected_count=embeddings.shape[0],
+            expected_dim=expected_dim,
+            norm_tolerance=args.validate_norm_tol,
+            min_self_score=args.validate_self_score,
+            top_k=args.validate_topk,
+        )
 
     LOG.info(
         "embed complete: frames=%d saved_embeddings=%s index=%s",
